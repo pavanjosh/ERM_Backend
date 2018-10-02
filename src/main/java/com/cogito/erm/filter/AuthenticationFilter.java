@@ -8,36 +8,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.http.HttpRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.MessageDigestPasswordEncoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.UrlPathHelper;
 
 import javax.security.sasl.AuthenticationException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
-
-
 public class AuthenticationFilter extends OncePerRequestFilter {
 
     private AuthenticationManager authenticationManager;
@@ -84,7 +73,15 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                     if (authorisation.isPresent()) {
                         //logger.debug("Trying to authenticate user by X-Auth-Token method. Token: {}", token.get());
                         LOG.debug("In Authentication Filter token {} ", authorisation.get());
-                        processTokenAuthentication(authorisation.get());
+
+                        String authorisationHeaderValue = authorisation.get();
+                        String authToken = authorisationHeaderValue.substring(BEARER_TOKEN_START);
+                        if(StringUtils.isEmpty(authToken)){
+                            throw new BadCredentialsException("Please login and provide the authorisation token in request");
+                        }
+                        else {
+                            processTokenAuthentication(authToken);
+                        }
                     } else {
                         throw new BadCredentialsException("Please login and provide the authorisation token in request");
                     }
@@ -114,11 +111,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean requestForUnauthorisedPath(String resourcePath){
-         if(ERMUtil.USER_REGISTER_PATH.equalsIgnoreCase(resourcePath)
-                 || ERMUtil.HOME_PATH.equalsIgnoreCase(resourcePath)
-                 || ERMUtil.INDEX_PATH.equalsIgnoreCase(resourcePath)
-                 ||ERMUtil.USER_FORGOT_PASSWORD_PATH.equalsIgnoreCase(resourcePath)
-                 ||ERMUtil.USER_RESET_PASSWORD_PATH.equalsIgnoreCase(resourcePath)){
+         if(ERMUtil.NON_AUTHENTICATION_APPLICATION_PATH_LIST.contains(resourcePath)
+           ||ERMUtil.NON_AUTHENTICATION_SPRING_ACTUATOR_PATH_LIST.contains(resourcePath))
+         {
              return true;
          }
         return false;

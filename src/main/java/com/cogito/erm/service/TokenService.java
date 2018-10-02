@@ -1,31 +1,35 @@
 package com.cogito.erm.service;
+
+import com.cogito.erm.dao.login.UserLogin;
+import com.cogito.erm.model.authentication.JwtTokenValidationStatus;
+import com.cogito.erm.util.JwtTokenUtil;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalUnit;
-import java.util.*;
-
-import com.cogito.erm.dao.login.UserLogin;
-import com.cogito.erm.dao.user.User;
-
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import org.jasypt.util.text.StrongTextEncryptor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Service
 public class TokenService {
 
-    //private static final Cache restApiAuthTokenCache = CacheManager.getInstance().getCache("restApiAuthTokenCache");
-    public static final int HALF_AN_HOUR_IN_MILLISECONDS = 30 * 60 * 1000;
-
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Value("${jwt.secret}")
     private String secret;
+
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
     public String generateNewToken(UserLogin userLogin) throws UnsupportedEncodingException{
 
         return generateJwt(userLogin);
@@ -43,16 +47,37 @@ public class TokenService {
                 .setIssuedAt(Date.from(now))
                .setClaims(claims)
                 .setNotBefore(Date.from(now))
-                .setIssuer("ERM")
-                .signWith(SignatureAlgorithm.HS256,getSecretBytes()).compact();
-
+                .setIssuer("ERMCogito")
+                .signWith(SignatureAlgorithm.HS256, jwtTokenUtil.getSecretBytes()).compact();
     }
 
-    private byte[] getSecretBytes() throws UnsupportedEncodingException {
-//        StrongTextEncryptor textEncryptor = new StrongTextEncryptor();
-//        textEncryptor.setPassword("ERMSecret");
-//        String decrypt = textEncryptor.decrypt(secret);
-        return Base64.getUrlDecoder().decode(secret.getBytes("UTF-8"));
+    public boolean  validateToken(String token){
+        JwtTokenValidationStatus jwtTokenValidationStatus = jwtTokenUtil.validateToken(token);
+        if (jwtTokenValidationStatus!=null && jwtTokenValidationStatus.isValidationStatus()){
+            logger.debug("Token validated successfully");
+            try{
+                int clientIdFromToken = jwtTokenUtil.getClientIdFromToken(token);
+                if(clientIdFromToken!=-1) {
+                    MDC.put("clientId", String.valueOf(jwtTokenUtil.getClientIdFromToken(token)));
+                }
+                else{
+                    logger.error("Invalid client id in the token {}",clientIdFromToken);
+                    return false;
+                }
+                MDC.put("userName", String.valueOf(jwtTokenUtil.getSubjectFromToken(token)));
+                MDC.put("roles", String.valueOf(jwtTokenUtil.getRolesFromToken(token)));
+                return true;
+            }
+            catch(UnsupportedEncodingException ex){
+                logger.error("Unsupported encoding exception while getting client id from token {}",ex);
+            }
+
+        }
+        else{
+            logger.error("error while validating the token {}",jwtTokenValidationStatus.getStatusMessage());
+        }
+        return false;
     }
+
 
 }

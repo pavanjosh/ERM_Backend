@@ -6,12 +6,9 @@ import com.cogito.erm.security.DomainUsernamePasswordAuthenticationProvider;
 import com.cogito.erm.security.TokenAuthenticationProvider;
 import com.cogito.erm.service.TokenService;
 import com.cogito.erm.util.ERMUtil;
-import org.apache.catalina.connector.Connector;
-import org.apache.coyote.http11.Http11NioProtocol;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -24,12 +21,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
 
-/**
- * Created by pavankumarjoshi on 30/05/2017.
- */
+
 @Configuration
 @EnableWebSecurity
 @EnableScheduling
@@ -57,9 +50,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
     }
 
     private String[] actuatorEndpoints() {
-        return new String[]{ERMUtil.AUTOCONFIG_ENDPOINT, ERMUtil.BEANS_ENDPOINT, ERMUtil.CONFIGPROPS_ENDPOINT,
-                ERMUtil.ENV_ENDPOINT, ERMUtil.MAPPINGS_ENDPOINT,
-                ERMUtil.METRICS_ENDPOINT, ERMUtil.SHUTDOWN_ENDPOINT};
+        String[] pathArr = new String[ERMUtil.NON_AUTHENTICATION_SPRING_ACTUATOR_PATH_LIST.size()];
+        pathArr=ERMUtil.NON_AUTHENTICATION_SPRING_ACTUATOR_PATH_LIST.toArray(pathArr);
+        return pathArr;
     }
 
     @Override
