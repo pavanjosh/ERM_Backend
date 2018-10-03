@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "UserRolesAndRoster")
-public class UserRoles {
+public class EmployeeRoles {
 
     private String rosterStartDate;
     private String rosterEndDate;

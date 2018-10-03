@@ -1,6 +1,6 @@
 package com.cogito.erm.service;
 
-import com.cogito.erm.dao.login.UserLogin;
+import com.cogito.erm.dao.login.EmployeeLogin;
 import com.cogito.erm.model.authentication.JwtTokenValidationStatus;
 import com.cogito.erm.util.JwtTokenUtil;
 import io.jsonwebtoken.Jwts;
@@ -30,11 +30,11 @@ public class TokenService {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
-    public String generateNewToken(UserLogin userLogin) throws UnsupportedEncodingException{
+    public String generateNewToken(EmployeeLogin userLogin) throws UnsupportedEncodingException{
 
         return generateJwt(userLogin);
     }
-    private String generateJwt(UserLogin userLogin)throws UnsupportedEncodingException {
+    private String generateJwt(EmployeeLogin userLogin)throws UnsupportedEncodingException {
         Instant now = Instant.now();
         Map<String,Object> claims = new HashMap<>();
         claims.put("clientId",userLogin.getEmployeeId());
@@ -42,7 +42,7 @@ public class TokenService {
         claims.put("locale", "en_NZ");
         int tokenDuration = 24;
         return Jwts.builder()
-                .setSubject(userLogin.getUserName())
+                .setSubject(userLogin.getName())
                 .setExpiration(Date.from(now.plus(tokenDuration, ChronoUnit.HOURS)))
                 .setIssuedAt(Date.from(now))
                .setClaims(claims)

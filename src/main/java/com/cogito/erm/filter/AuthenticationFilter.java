@@ -61,7 +61,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 else {
                     if (postToAuthenticate(httpRequest, resourcePath)) {
                         if (!userName.isPresent() || !password.isPresent()) {
-                            throw new InternalAuthenticationServiceException("User Name and Password Missing in header");
+                            throw new InternalAuthenticationServiceException("Employee Name and Password Missing in header");
                         }
                         LOG.debug("In Authentication Filter username {}, password {} ", userName.get());
                         processUserNameAndPasswordAuthentication(httpResponse, userName.get(), password.get());

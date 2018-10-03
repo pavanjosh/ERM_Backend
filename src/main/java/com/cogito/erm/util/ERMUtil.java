@@ -1,5 +1,7 @@
 package com.cogito.erm.util;
 
+import com.cogito.erm.exception.ServiceException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,4 +31,15 @@ public class ERMUtil {
     public static final String HOST = "host";
     public static final String ERR_INVALID_JSON_FORMAT = "Exception parsing JSON format";
     public static final String SYSTEM_NAME="ERM_COGITO_EXPERIENCE";
+    public static final String EMPLOYEE_ID_FILED = "id";
+    public static final String EMPLOYEE_NAME_FILED = "name";
+
+
+    public static void createAndThrowException(int httpStatus,String errorCode,String errorMessage){
+        ServiceException experienceServiceException = new ServiceException();
+        experienceServiceException.setErrorMessage(errorMessage);
+        experienceServiceException.setErrorCode(errorCode);
+        experienceServiceException.setHttpStatus(httpStatus);
+        throw experienceServiceException;
+    }
 }

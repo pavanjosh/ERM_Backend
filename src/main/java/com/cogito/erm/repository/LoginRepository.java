@@ -1,6 +1,6 @@
 package com.cogito.erm.repository;
 
-import com.cogito.erm.dao.login.UserLogin;
+import com.cogito.erm.dao.login.EmployeeLogin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -15,12 +15,12 @@ public class LoginRepository {
     private MongoTemplate mongoTemplate;
 
 
-    public UserLogin checkCredentials(String userName,String password){
+    public EmployeeLogin checkCredentials(String userName,String password){
 
         Query query = new Query();
         query.addCriteria(Criteria.where("userName").is(userName));
         //query.fields().include("userName").include("employeeId");
-        UserLogin userLogin = mongoTemplate.findOne(query,UserLogin.class);
+        EmployeeLogin userLogin = mongoTemplate.findOne(query,EmployeeLogin.class);
         if(userLogin!=null){
             String dbPassword = userLogin.getPassword();
             // code to decrypt the db password
