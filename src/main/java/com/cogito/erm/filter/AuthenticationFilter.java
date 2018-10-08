@@ -1,19 +1,20 @@
 package com.cogito.erm.filter;
 
-
+import com.cogito.erm.exception.CommonExceptionModel;
 import com.cogito.erm.model.authentication.AuthenticationWithToken;
 import com.cogito.erm.security.TokenResponse;
 import com.cogito.erm.util.ERMUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.util.StringUtils;
@@ -30,7 +31,7 @@ import java.util.Optional;
 public class AuthenticationFilter extends OncePerRequestFilter {
 
     private AuthenticationManager authenticationManager;
-    public static final String AUTHORISATION_TOKEN_KEY = "Authorisation";
+    public static final String AUTHORISATION_TOKEN_KEY = "Authorization";
     public static final String USER_SESSION_KEY = "user";
 
 
@@ -55,13 +56,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             String resourcePath = new UrlPathHelper().getPathWithinApplication(httpRequest);
             try {
                 if (requestForUnauthorisedPath(resourcePath)) {
-
-                LOG.debug("This URL requires no Authentication {}",resourcePath);
+                    LOG.debug("This URL requires no Authentication {}",resourcePath);
                 }
                 else {
                     if (postToAuthenticate(httpRequest, resourcePath)) {
                         if (!userName.isPresent() || !password.isPresent()) {
                             throw new InternalAuthenticationServiceException("Employee Name and Password Missing in header");
+
                         }
                         LOG.debug("In Authentication Filter username {}, password {} ", userName.get());
                         processUserNameAndPasswordAuthentication(httpResponse, userName.get(), password.get());
@@ -80,27 +81,37 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                             throw new BadCredentialsException("Please login and provide the authorisation token in request");
                         }
                         else {
-                            processTokenAuthentication(authToken);
+                            processTokenAuthentication(httpResponse,authToken);
                         }
                     } else {
                         throw new BadCredentialsException("Please login and provide the authorisation token in request");
+
                     }
                 }
-                addSessionContextToLogging(httpRequest);
+
                 chain.doFilter(httpRequest, httpResponse);
             } catch (InternalAuthenticationServiceException internalAuthenticationServiceException) {
                 SecurityContextHolder.clearContext();
                 LOG.error("Internal authentication service exception {}", internalAuthenticationServiceException);
-                httpResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            } catch (BadCredentialsException authenticationException) {
+                sendError(httpResponse, HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.name(),
+                 internalAuthenticationServiceException.getMessage());
+            } catch (BadCredentialsException badCredentialsException) {
                 SecurityContextHolder.clearContext();
-                LOG.error("Bad credentials exception {}", authenticationException);
-                httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, authenticationException.getMessage());
+                LOG.error("Bad credentials exception {}", badCredentialsException);
+                sendError(httpResponse, HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.name(),
+                  badCredentialsException.getMessage());
             } catch (AuthenticationException authenticationException) {
                 SecurityContextHolder.clearContext();
                 LOG.error("Authentication exception {}", authenticationException);
-                httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, authenticationException.getMessage());
-            } finally {
+                sendError(httpResponse, HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.name(),
+                  authenticationException.getMessage());
+            } catch (Exception ex) {
+                SecurityContextHolder.clearContext();
+                LOG.error("Authentication exception {}", ex);
+                sendError(httpResponse, HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.name(),
+                  ex.getMessage());
+            }
+            finally {
                 MDC.clear();
             }
         }
@@ -119,26 +130,17 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         return false;
     }
 
-    private void addSessionContextToLogging(HttpServletRequest httpRequest){
-        SecurityContext context = SecurityContextHolder.getContext();
-        Authentication authentication = context.getAuthentication();
-        if(authentication != null) {
 
-            String token = (String) authentication.getPrincipal().toString();
-            String userValue = (String) authentication.getDetails().toString();
-            MDC.put(AUTHORISATION_TOKEN_KEY, token);
-            MDC.put(USER_SESSION_KEY, userValue);
-        }
-
-    }
-    private void processTokenAuthentication(String token){
+    private void processTokenAuthentication(HttpServletResponse httpResponse,String token) throws IOException{
         PreAuthenticatedAuthenticationToken requestAuthentication = new PreAuthenticatedAuthenticationToken(token, null);
         Authentication authenticate = authenticationManager.authenticate(requestAuthentication);
         if(authenticate==null ){
             throw new InternalAuthenticationServiceException("Unable to authenticate user");
+
         }
         else if(!authenticate.isAuthenticated()){
             throw new BadCredentialsException("Not a valid user");
+
         }
         SecurityContextHolder.getContext().setAuthentication(authenticate);
     }
@@ -150,9 +152,11 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         Authentication authenticate = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
         if(authenticate==null ){
             throw new InternalAuthenticationServiceException("Unable to authenticate user");
+
         }
         else if(!authenticate.isAuthenticated()){
             throw new BadCredentialsException("Not a valid user");
+
         }
         SecurityContextHolder.getContext().setAuthentication(authenticate);
 
@@ -166,5 +170,22 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         httpResponse.addHeader("Content-Type", "application/json");
         httpResponse.getWriter().print(tokenJsonResponse);
         httpResponse.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    private void sendError(HttpServletResponse httpServletResponse, int status, String errorCode, String errorMessage)
+      throws JsonProcessingException, IOException {
+        logger.error(errorMessage);
+        httpServletResponse.setStatus(status);
+        SecurityContextHolder.clearContext();
+        CommonExceptionModel commonException = new CommonExceptionModel();
+        commonException.setErrorCode(errorCode);
+        commonException.setErrorMessage(errorMessage);
+        commonException.setHttpStatus(status);
+        commonException.setSystemName(ERMUtil.SYSTEM_NAME);
+
+        MDC.clear();
+        ObjectMapper objectMapper = new ObjectMapper();
+        httpServletResponse.getWriter().write(objectMapper.writeValueAsString(commonException));
+
     }
 }

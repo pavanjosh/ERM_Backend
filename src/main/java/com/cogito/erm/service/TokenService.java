@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -40,15 +41,17 @@ public class TokenService {
         claims.put("clientId",userLogin.getEmployeeId());
         claims.put("timezone", "Pacific/Auckland");
         claims.put("locale", "en_NZ");
+        claims.put("employeeName",userLogin.getName());
+
         int tokenDuration = 24;
         return Jwts.builder()
-                .setSubject(userLogin.getName())
-                .setExpiration(Date.from(now.plus(tokenDuration, ChronoUnit.HOURS)))
-                .setIssuedAt(Date.from(now))
-               .setClaims(claims)
-                .setNotBefore(Date.from(now))
-                .setIssuer("ERMCogito")
-                .signWith(SignatureAlgorithm.HS256, jwtTokenUtil.getSecretBytes()).compact();
+          .setClaims(claims)
+          .setSubject(userLogin.getName())
+          .setExpiration(Date.from(now.plus(tokenDuration, ChronoUnit.HOURS)))
+          .setIssuedAt(Date.from(now))
+          .setNotBefore(Date.from(now))
+          .setIssuer("ERMCogito")
+          .signWith(SignatureAlgorithm.HS256, jwtTokenUtil.getSecretBytes()).compact();
     }
 
     public boolean  validateToken(String token){
@@ -56,13 +59,13 @@ public class TokenService {
         if (jwtTokenValidationStatus!=null && jwtTokenValidationStatus.isValidationStatus()){
             logger.debug("Token validated successfully");
             try{
-                int clientIdFromToken = jwtTokenUtil.getClientIdFromToken(token);
-                if(clientIdFromToken!=-1) {
-                    MDC.put("clientId", String.valueOf(jwtTokenUtil.getClientIdFromToken(token)));
+                String clientIdFromToken = jwtTokenUtil.getClientIdFromToken(token);
+                if(!clientIdFromToken.equalsIgnoreCase("-1")) {
+                    MDC.put("clientId", jwtTokenUtil.getClientIdFromToken(token));
                 }
                 else{
                     logger.error("Invalid client id in the token {}",clientIdFromToken);
-                    return false;
+                    throw new BadCredentialsException(jwtTokenValidationStatus.getStatusMessage());
                 }
                 MDC.put("userName", String.valueOf(jwtTokenUtil.getSubjectFromToken(token)));
                 MDC.put("roles", String.valueOf(jwtTokenUtil.getRolesFromToken(token)));
@@ -75,6 +78,7 @@ public class TokenService {
         }
         else{
             logger.error("error while validating the token {}",jwtTokenValidationStatus.getStatusMessage());
+            throw new BadCredentialsException(jwtTokenValidationStatus.getStatusMessage());
         }
         return false;
     }

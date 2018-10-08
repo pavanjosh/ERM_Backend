@@ -42,7 +42,7 @@ public class EmployeeRepository {
 
     public String updateEmployee(String id, Employee employee){
         Query query = new Query();
-        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(id));
+        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is("ObjectId("+id+")"));
         Employee employeeSearched = mongoTemplate.findOne(query, Employee.class);
         if(employeeSearched!=null){
             DeleteResult remove = mongoTemplate.remove(employeeSearched);

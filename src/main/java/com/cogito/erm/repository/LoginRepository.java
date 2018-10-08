@@ -7,7 +7,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
-
 @Repository
 public class LoginRepository {
 
@@ -18,7 +17,7 @@ public class LoginRepository {
     public EmployeeLogin checkCredentials(String userName,String password){
 
         Query query = new Query();
-        query.addCriteria(Criteria.where("userName").is(userName));
+        query.addCriteria(Criteria.where("name").is(userName));
         //query.fields().include("userName").include("employeeId");
         EmployeeLogin userLogin = mongoTemplate.findOne(query,EmployeeLogin.class);
         if(userLogin!=null){

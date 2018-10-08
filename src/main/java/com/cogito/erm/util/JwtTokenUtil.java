@@ -3,7 +3,6 @@ package com.cogito.erm.util;
 import com.cogito.erm.model.authentication.JwtTokenValidationStatus;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultClock;
-import org.jasypt.util.text.StrongTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,10 +35,10 @@ public class JwtTokenUtil
         return (List<String>) claims.get("roles");
       });
     }
-    public int getClientIdFromToken(String token)  throws UnsupportedEncodingException{
+    public String getClientIdFromToken(String token)  throws UnsupportedEncodingException{
       return getClaimFromToken(token, (claims) -> {
         Object clientId = claims.get("clientId");
-        return (clientId!=null)?(int) claims.get("clientId"):-1;
+        return (clientId!=null)? (String)claims.get("clientId"):"-1";
       });
     }
 
@@ -52,7 +51,8 @@ public class JwtTokenUtil
           .setSigningKey(getSecretBytes())
           .parseClaimsJws(token)
           .getBody();
-        return function.apply(claims);
+
+      return function.apply(claims);
     }
 
     public JwtTokenValidationStatus validateToken(String token){
@@ -107,9 +107,10 @@ public class JwtTokenUtil
       return jwtTokenValidationStatus;
     }
     public byte[] getSecretBytes() throws UnsupportedEncodingException{
-      StrongTextEncryptor textEncryptor = new StrongTextEncryptor();
-      textEncryptor.setPassword("ERMCogitoTechnologySolutions");
-      String decrypt = textEncryptor.decrypt(secret);
+      //StrongTextEncryptor textEncryptor = new StrongTextEncryptor();
+      //textEncryptor.setPassword("ERMCogitoTechnologySolutions");
+      //String decrypt = textEncryptor.decrypt(secret);
+      String decrypt = secret;
       return Base64.getUrlDecoder().decode(decrypt.getBytes("UTF-8"));
     }
   private boolean validateMandatoryFieldsInToken(String token) throws InvalidParameterException, UnsupportedEncodingException {

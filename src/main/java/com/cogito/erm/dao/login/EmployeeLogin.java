@@ -1,14 +1,19 @@
 package com.cogito.erm.dao.login;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 
-@Document(collection="UserEntryDetails")
+@Document(collection="employeeLoginDetails")
 public class EmployeeLogin
   implements Serializable{
 
     private String name;
+
+    @Id
+    private String securityLicenseNumber;
+
     private String password;
     private String createdDate;
     private boolean status;
@@ -16,6 +21,14 @@ public class EmployeeLogin
     private String employeeId;
 
     public EmployeeLogin(){}
+
+    public String getSecurityLicenseNumber() {
+        return securityLicenseNumber;
+    }
+
+    public void setSecurityLicenseNumber(String securityLicenseNumber) {
+        this.securityLicenseNumber = securityLicenseNumber;
+    }
 
     public String getName() {
         return name;
