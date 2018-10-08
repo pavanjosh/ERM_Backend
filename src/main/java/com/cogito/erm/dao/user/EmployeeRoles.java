@@ -5,7 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.ArrayList;
 import java.util.List;
 
-@Document(collection = "UserRolesAndRoster")
+@Document(collection = "employeeRolesAndRosters")
 public class EmployeeRoles {
 
     private String rosterStartDate;

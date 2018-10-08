@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/defaults.xml" />
+	<include
+		resource="org/springframework/boot/logging/logback/console-appender.xml" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder 
+			by default -->
+		<encoder>
+			<pattern>%date{dd-MMM-yyyy HH:mm:ss.SSS} [%thread] %-5level
+				%logger{36} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="jsonFile"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>app/logs/cogito-erm.log</File>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>app/logs/ppsr-orchestration-ms-json.%d{yyyy-MM-dd}.%i.log
+			</fileNamePattern>
+			<maxHistory>5</maxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>50MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="com.cogito.erm.config.CustomJsonLayout">
+				<jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+					<prettyPrint>true</prettyPrint>
+				</jsonFormatter>
+				<appendLineSeparator>true</appendLineSeparator>
+				<timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSS</timestampFormat>
+				<includeMDC>false</includeMDC>
+				<includeContextName>false</includeContextName>
+				<includeFormattedMessage>true</includeFormattedMessage>
+			</layout>
+		</encoder>
+	</appender>
+
+	<root name="jsonLogger" level="INFO">
+		<appender-ref ref="jsonFile" />
+		<appender-ref ref="STDOUT" />
+	</root>
+</configuration>
