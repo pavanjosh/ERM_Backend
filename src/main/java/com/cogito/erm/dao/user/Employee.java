@@ -37,6 +37,15 @@ public class Employee {
   private String trafficControl;
   private String trafficControlExpiry;
   private String pfso;
+  private boolean active=false;
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
+  }
 
   public String getEmployeeId() {
     return employeeId;

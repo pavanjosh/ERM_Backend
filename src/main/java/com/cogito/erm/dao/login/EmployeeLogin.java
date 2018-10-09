@@ -12,23 +12,16 @@ public class EmployeeLogin
     private String name;
 
     @Id
-    private String securityLicenseNumber;
+    private String id;
 
     private String password;
     private String createdDate;
-    private boolean status;
     private String lastLogin;
     private String employeeId;
 
     public EmployeeLogin(){}
 
-    public String getSecurityLicenseNumber() {
-        return securityLicenseNumber;
-    }
 
-    public void setSecurityLicenseNumber(String securityLicenseNumber) {
-        this.securityLicenseNumber = securityLicenseNumber;
-    }
 
     public String getName() {
         return name;
@@ -52,14 +45,6 @@ public class EmployeeLogin
 
     public void setCreatedDate(String createdDate) {
         this.createdDate = createdDate;
-    }
-
-    public boolean isStatus() {
-        return status;
-    }
-
-    public void setStatus(boolean status) {
-        this.status = status;
     }
 
     public String getLastLogin() {

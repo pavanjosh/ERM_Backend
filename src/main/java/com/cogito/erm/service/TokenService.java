@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-
 @Service
 public class TokenService {
 
@@ -39,7 +38,7 @@ public class TokenService {
         Instant now = Instant.now();
         Map<String,Object> claims = new HashMap<>();
         claims.put("clientId",userLogin.getEmployeeId());
-        claims.put("timezone", "Pacific/Auckland");
+        //claims.put("timezone", TimeZone.getTimeZone(""));
         claims.put("locale", "en_NZ");
         claims.put("employeeName",userLogin.getName());
 

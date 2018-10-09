@@ -27,8 +27,8 @@ public class EmployeeService {
         return employees;
     }
 
-    public String updateEmployee(String id,Employee updateEmployee){
-        return employeeRepository.updateEmployee(id, updateEmployee);
+    public String updateEmployee(Employee updateEmployee){
+        return employeeRepository.updateEmployee( updateEmployee);
 
     }
 
@@ -39,5 +39,10 @@ public class EmployeeService {
     public boolean deleteEmployee(String id){
         return employeeRepository.deleteEmployees(id);
 
+    }
+
+    public List<Employee> searchEmployee(String searchTerm,String searchValue){
+        List<Employee> employees = employeeRepository.searchEmployee(searchTerm, searchValue);
+        return employees;
     }
 }

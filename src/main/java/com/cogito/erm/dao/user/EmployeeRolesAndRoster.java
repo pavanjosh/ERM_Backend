@@ -1,18 +1,22 @@
 package com.cogito.erm.dao.user;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "employeeRolesAndRosters")
-public class EmployeeRoles {
+public class EmployeeRolesAndRoster {
+
+    @Id
+    private String id;
 
     private String rosterStartDate;
     private String rosterEndDate;
     private List<String> role = new ArrayList<>();
     private String employeeId;
-    private String userName;
+    private String name;
     private String location;
 
     public String getRosterStartDate() {
@@ -48,12 +52,20 @@ public class EmployeeRoles {
         this.employeeId = employeeId;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getId() {
+        return id;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getLocation() {
