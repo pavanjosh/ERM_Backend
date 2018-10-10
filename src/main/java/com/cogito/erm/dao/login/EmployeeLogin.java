@@ -4,31 +4,38 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @Document(collection="employeeLoginDetails")
 public class EmployeeLogin
   implements Serializable{
 
-    private String name;
+    private String loginName;
 
     @Id
     private String id;
 
     private String password;
-    private String createdDate;
-    private String lastLogin;
+    private Date createdDate;
+    private Date lastLogin;
     private String employeeId;
 
     public EmployeeLogin(){}
 
-
-
-    public String getName() {
-        return name;
+    public String getLoginName() {
+        return loginName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setLoginName(String loginName) {
+        this.loginName = loginName;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getPassword() {
@@ -39,19 +46,19 @@ public class EmployeeLogin
         this.password = password;
     }
 
-    public String getCreatedDate() {
+    public Date getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(String createdDate) {
+    public void setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
     }
 
-    public String getLastLogin() {
+    public Date getLastLogin() {
         return lastLogin;
     }
 
-    public void setLastLogin(String lastLogin) {
+    public void setLastLogin(Date lastLogin) {
         this.lastLogin = lastLogin;
     }
 

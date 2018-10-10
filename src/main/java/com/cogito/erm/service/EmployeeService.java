@@ -1,7 +1,7 @@
 package com.cogito.erm.service;
 
-import com.cogito.erm.dao.login.EmployeeLogin;
 import com.cogito.erm.dao.user.Employee;
+import com.cogito.erm.model.authentication.LoginResponse;
 import com.cogito.erm.repository.EmployeeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +18,7 @@ public class EmployeeService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    public List<String> getRolesForEmployee(EmployeeLogin userLogin){
+    public List<String> getRolesForEmployee(LoginResponse userLogin){
         return employeeRepository.getRoles(userLogin);
     }
 

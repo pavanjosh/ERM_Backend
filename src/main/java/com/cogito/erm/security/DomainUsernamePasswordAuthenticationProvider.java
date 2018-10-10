@@ -1,8 +1,8 @@
 package com.cogito.erm.security;
 
 
-import com.cogito.erm.dao.login.EmployeeLogin;
 import com.cogito.erm.model.authentication.AuthenticationWithToken;
+import com.cogito.erm.model.authentication.LoginResponse;
 import com.cogito.erm.service.EmployeeService;
 import com.cogito.erm.service.LoginService;
 import com.cogito.erm.service.TokenService;
@@ -42,14 +42,17 @@ public class DomainUsernamePasswordAuthenticationProvider implements Authenticat
         String username = authentication.getPrincipal().toString();
         String password = authentication.getCredentials().toString();
         AuthenticationWithToken authenticationWithToken = new AuthenticationWithToken(username, password);
-        EmployeeLogin userLogin = loginService.login(username,password);
+        LoginResponse userLogin = loginService.login(username,password);
         if(userLogin!=null){
+
             // generate token
             // return token and the roles for the user
             try {
                 String newToken = tokenService.generateNewToken(userLogin);
+                log.debug("New token generated for user {} ,{}",username,newToken);
                 authenticationWithToken.setAuthenticated(true);
                 authenticationWithToken.setRoles(employeeService.getRolesForEmployee(userLogin));
+                log.debug("Roles that are present for user {} ,{}",username,authenticationWithToken.getRoles());
                 authenticationWithToken.setToken(newToken);
 
             }

@@ -13,7 +13,7 @@ public class ERMUtil {
     public static final String AUTHENTICATE_URL = "/erm/api/login";
 
     public static final List<String> NON_AUTHENTICATION_APPLICATION_PATH_LIST=
-      new ArrayList<String>(Arrays.asList("/user/register","/home","/index","/user/forgot","/user/reset" ));
+      new ArrayList<String>(Arrays.asList("erm/api/home","/user/forgot","/user/reset" ));
     public static final List<String> NON_AUTHENTICATION_SPRING_ACTUATOR_PATH_LIST=
       new ArrayList<String>(Arrays.asList("\"/autoconfig\"","/beans","/configprops","/env","/mappings","/metrics","/shutdown" ));
 

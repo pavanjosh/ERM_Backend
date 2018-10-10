@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Document(collection = "employeeRolesAndRosters")
@@ -12,29 +13,28 @@ public class EmployeeRolesAndRoster {
     @Id
     private String id;
 
-    private String rosterStartDate;
-    private String rosterEndDate;
+    private Date rosterStartDate;
+    private Date rosterEndDate;
     private List<String> role = new ArrayList<>();
     private String employeeId;
     private String name;
     private String location;
 
-    public String getRosterStartDate() {
+    public Date getRosterStartDate() {
         return rosterStartDate;
     }
 
-    public void setRosterStartDate(String rosterStartDate) {
+    public void setRosterStartDate(Date rosterStartDate) {
         this.rosterStartDate = rosterStartDate;
     }
 
-    public String getRosterEndDate() {
+    public Date getRosterEndDate() {
         return rosterEndDate;
     }
 
-    public void setRosterEndDate(String rosterEndDate) {
+    public void setRosterEndDate(Date rosterEndDate) {
         this.rosterEndDate = rosterEndDate;
     }
-
 
     public List<String> getRole() {
         return role;

@@ -54,12 +54,15 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             Optional<String> password = Optional.ofNullable(httpRequest.getHeader("X-Auth-Password"));
             Optional<String> authorisation = Optional.ofNullable(httpRequest.getHeader(AUTHORISATION_TOKEN_KEY));
             String resourcePath = new UrlPathHelper().getPathWithinApplication(httpRequest);
+            UrlPathHelper urlPathHelper = new UrlPathHelper();
+            String requestUri = urlPathHelper.getRequestUri(httpRequest);
+
             try {
                 if (requestForUnauthorisedPath(resourcePath)) {
                     LOG.debug("This URL requires no Authentication {}",resourcePath);
                 }
                 else {
-                    if (postToAuthenticate(httpRequest, resourcePath)) {
+                    if (postToAuthenticate(httpRequest, requestUri)) {
                         if (!userName.isPresent() || !password.isPresent()) {
                             throw new InternalAuthenticationServiceException("Employee Name and Password Missing in header");
 

@@ -2,6 +2,7 @@ package com.cogito.erm.service;
 
 
 import com.cogito.erm.dao.login.EmployeeLogin;
+import com.cogito.erm.model.authentication.LoginResponse;
 import com.cogito.erm.repository.LoginRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +17,13 @@ public class LoginService {
     @Autowired
     private LoginRepository loginRepository;
 
-    public EmployeeLogin login(String userName, String password){
+    public LoginResponse login(String userName, String password){
 
         logger.debug("Check credentials method");
         return loginRepository.checkCredentials(userName, password);
+    }
+    public String createLoginCredentials(EmployeeLogin employeeLogin){
+        logger.debug("Creating new login credentials");
+        return loginRepository.createLoginCredentials(employeeLogin);
     }
 }
