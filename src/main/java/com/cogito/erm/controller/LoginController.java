@@ -18,9 +18,14 @@ public class LoginController {
     return new ResponseEntity<String>(loginService.createLoginCredentials(employeeLogin), HttpStatus.OK);
   }
 
-  @RequestMapping(value = "/login/update",method = RequestMethod.POST)
-  public ResponseEntity<String> updateNewLoginCredentials(@RequestBody EmployeeLogin employeeLogin){
+  @RequestMapping(value = "/login/update",method = RequestMethod.PUT)
+  public ResponseEntity<String> updateLoginCredentials(@RequestBody EmployeeLogin employeeLogin){
     return new ResponseEntity<String>(loginService.updateLoginCredentials(employeeLogin), HttpStatus.OK);
+  }
+
+  @RequestMapping(value = "/login/delete/{id}",method = RequestMethod.DELETE)
+  public ResponseEntity<String> deleteLoginCredentials(@PathVariable(name = "id") String id){
+    return new ResponseEntity<String>(loginService.deleteLoginCredentials(id), HttpStatus.OK);
   }
 
   @RequestMapping(value = "/login/details/{id}",method = RequestMethod.GET)

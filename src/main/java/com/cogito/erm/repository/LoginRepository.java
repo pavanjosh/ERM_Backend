@@ -4,6 +4,7 @@ import com.cogito.erm.dao.login.EmployeeLogin;
 import com.cogito.erm.dao.user.Employee;
 import com.cogito.erm.model.authentication.LoginResponse;
 import com.cogito.erm.util.ERMUtil;
+import com.mongodb.client.result.DeleteResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -36,7 +37,7 @@ public class LoginRepository {
         // if found check the status, if active then login is successful else not successful
         if(userLogin !=null){
             String employeeId = userLogin.getEmployeeId();
-            Query employeeQuery = new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeId)
+            Query employeeQuery = new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).is(employeeId)
               .andOperator(Criteria.where(ERMUtil.EMPLOYEE_ACTIVE_FILED).is(true),Criteria.where("loginName").is(userName)));
             Employee employeeDetails = mongoTemplate.findOne(employeeQuery, Employee.class, ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
 
@@ -66,7 +67,7 @@ public class LoginRepository {
         // update created date
         if(employeeLogin.getEmployeeId()!=null){
             String employeeId = employeeLogin.getEmployeeId();
-            Query employeeQuery = new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeId)
+            Query employeeQuery = new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).is(employeeId)
               .andOperator(Criteria.where(ERMUtil.EMPLOYEE_ACTIVE_FILED).is(true),Criteria.where("loginName").is(employeeLogin.getLoginName())));
             Employee employeeDetails = mongoTemplate.findOne(employeeQuery, Employee.class, ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
             if(employeeDetails!=null){
@@ -111,7 +112,7 @@ public class LoginRepository {
             ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "LoginNameAlreadyTaken",
               "Login name already taken by a employee, please find an another login name");
         }
-        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeLogin.getId()));
+        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).is(employeeLogin.getId()));
         Employee employeeSearched = mongoTemplate.findOne(query, Employee.class);
         if(employeeSearched!=null){
             BeanUtils.copyProperties(employeeLogin,employeeSearched);
@@ -139,11 +140,48 @@ public class LoginRepository {
 
     }
 
+    public String deleteLoginCredentials(String id){
+        Query query = new Query();
+        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).is(id));
+        // first find the employee associated with this id
+        // delete the login name for that employee and then delete the login credentials
+        EmployeeLogin employeeLogin = mongoTemplate.findOne(query,EmployeeLogin.class,ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
+        if(employeeLogin!=null){
+            String employeeId = employeeLogin.getEmployeeId();
+            if(!StringUtils.isEmpty(employeeId)){
+                Query employeeQuery = new Query();
+                employeeQuery.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).is(employeeId));
+                Employee employee =mongoTemplate.findOne(employeeQuery,Employee.class,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
+                if(employee!=null){
+                    employee.setLoginName("");
+                    mongoTemplate.save(employee,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
+                }
+                else{
+                    ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "EmployeeNotFound",
+                            "There is no referenced employee for the login credentials id " + id
+                                    +" and employee id "+employeeId);
+                }
+            }
+            else{
+                ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "EmployeeIdNotFound",
+                        "There is no referenced employee for the login credentials id " + id );
+            }
+
+        }
+        else{
+            ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "getEmployeeLoginNotFound",
+                    "given id did not match any employee login credentials record" );
+        }
+        DeleteResult remove = mongoTemplate.remove(query, EmployeeLogin.class,ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
+        log.info("Employee login deleted successfully {}",id);
+        return (remove.wasAcknowledged())?id:null;
+    }
+
     private boolean isUniqueLoginName(String loginName,String id){
 
         List<Employee> employees = mongoTemplate
           .find(new Query().addCriteria(Criteria.where("loginName").is(loginName).
-              andOperator(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).ne(id))), Employee.class,
+              andOperator(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).ne(id))), Employee.class,
             ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
         if (CollectionUtils.isEmpty(employees)) {
             return true;

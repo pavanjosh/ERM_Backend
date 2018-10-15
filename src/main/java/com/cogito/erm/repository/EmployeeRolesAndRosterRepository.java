@@ -1,8 +1,11 @@
 package com.cogito.erm.repository;
 
+import com.cogito.erm.controller.RolesAndRosterController;
+import com.cogito.erm.dao.user.Employee;
 import com.cogito.erm.dao.user.EmployeeRolesAndRoster;
 import com.cogito.erm.model.authentication.LoginResponse;
 import com.cogito.erm.util.ERMUtil;
+import com.mongodb.client.result.DeleteResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -25,8 +29,40 @@ public class EmployeeRolesAndRosterRepository {
 
   public String createRolesAndRoster(EmployeeRolesAndRoster employeeRolesAndRoster){
 
-    mongoTemplate.save(employeeRolesAndRoster, ERMUtil.EMPLOYEE_ROLESANDROSTER_COLLECTION);
-    return employeeRolesAndRoster.getId();
+    // check if the employee is present before saving the roster details for the employee
+    if(employeeRolesAndRoster!=null) {
+      String employeeId =  employeeRolesAndRoster.getEmployeeId();
+      if(!StringUtils.isEmpty(employeeId)){
+        Employee employee = mongoTemplate.findOne(
+                new Query().addCriteria(Criteria.where("employeeId").is(employeeId)
+                        .andOperator(Criteria.where(ERMUtil.EMPLOYEE_ACTIVE_FILED).is(true)))
+                ,Employee.class,
+                ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
+        if(employee!=null){
+          mongoTemplate.save(employeeRolesAndRoster, ERMUtil.EMPLOYEE_ROLESANDROSTER_COLLECTION);
+          log.info("Roster created successfully with id {}",employeeRolesAndRoster.getId());
+          return employeeRolesAndRoster.getId();
+        }
+        else{
+          log.error("Invalid employee Id for the roster object to save");
+          ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "EmptyEmployeeForRolesAndRoster",
+                  "Invalid employee Id for the roster object to save");
+        }
+      }
+      else{
+        log.error("Invalid employee Id for the roster object to save");
+        ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "EmptyRolesAndRoster",
+                "Invalid employee Id for the roster object to save");
+      }
+
+    }
+    else{
+      log.error("Empty roster object to save");
+      ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "EmptyRolesAndRoster",
+              "Invalid roster object to save");
+    }
+
+    return null;
   }
 
   public List<String> getRoles(LoginResponse userLogin){
@@ -49,5 +85,24 @@ public class EmployeeRolesAndRosterRepository {
   }
 
     return null;
+  }
+
+  public List<EmployeeRolesAndRoster> getAllRosterDetails(){
+    List<EmployeeRolesAndRoster> rosters =
+            mongoTemplate.findAll(EmployeeRolesAndRoster.class,ERMUtil.EMPLOYEE_ROLESANDROSTER_COLLECTION);
+    return rosters;
+  }
+
+  public String deleteRosterDetails(String id){
+    DeleteResult deleteResult =
+            mongoTemplate.remove(new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).is(id)),
+                    EmployeeRolesAndRoster.class,ERMUtil.EMPLOYEE_ROLESANDROSTER_COLLECTION);
+    if(!deleteResult.wasAcknowledged()){
+      log.error("Could not delete rosterObject with id {}",id);
+      ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "DeleteRolesAndRosterUnsuccessful",
+              "Could not delete rosterObject with id "+ id);
+    }
+    log.info("delete of roster was successful {}", id);
+    return id;
   }
 }

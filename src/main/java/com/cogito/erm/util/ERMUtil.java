@@ -31,7 +31,7 @@ public class ERMUtil {
     public static final String HOST = "host";
     public static final String ERR_INVALID_JSON_FORMAT = "Exception parsing JSON format";
     public static final String SYSTEM_NAME="ERM_COGITO_EXPERIENCE";
-    public static final String EMPLOYEE_ID_FILED = "id";
+    public static final String EMPLOYEE_COLLECTION_ID_FILED = "id";
     public static final String EMPLOYEE_NAME_FILED = "name";
     public static final String EMPLOYEE_ACTIVE_FILED = "active";
     public static final String EMPLOYEE_ROSTER_STARTDATE_FILED = "rosterStartDate";

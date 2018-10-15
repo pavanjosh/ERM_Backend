@@ -45,7 +45,7 @@ public class EmployeeRepository {
             ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "LoginNameAlreadyTaken",
               "Login name already taken by a employee, please find an another login name");
         }
-        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employee.getId()));
+        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).is(employee.getId()));
         Employee employeeSearched = mongoTemplate.findOne(query, Employee.class);
         if(employeeSearched!=null){
             BeanUtils.copyProperties(employee,employeeSearched);
@@ -78,8 +78,9 @@ public class EmployeeRepository {
 
     public boolean deleteEmployees(String id){
         Query query = new Query();
-        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(id));
+        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).is(id));
         DeleteResult remove = mongoTemplate.remove(query, Employee.class);
+        log.info("Employee deleted successfully {}",id);
         return remove.wasAcknowledged();
     }
 
@@ -87,6 +88,7 @@ public class EmployeeRepository {
         Query query = new Query();
         Criteria regex = Criteria.where(searchTerm).regex(searchValue,"i");
         List<Employee> employees = mongoTemplate.find(query.addCriteria(regex), Employee.class);
+        log.info("list of employees found {}",employees);
         return employees;
     }
 
@@ -94,7 +96,7 @@ public class EmployeeRepository {
 
         List<Employee> employees = mongoTemplate
           .find(new Query().addCriteria(Criteria.where("loginName").is(loginName).
-              andOperator(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).ne(id))), Employee.class,
+              andOperator(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).ne(id))), Employee.class,
             ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
         if (CollectionUtils.isEmpty(employees)) {
             return true;
