@@ -6,6 +6,7 @@ import com.cogito.erm.model.authentication.LoginResponse;
 import com.cogito.erm.util.ERMUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -13,6 +14,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -44,6 +46,8 @@ public class LoginRepository {
                 loginResponse.setEmployeeId(employeeDetails.getId());
                 loginResponse.setLoginName(employeeDetails.getLoginName());
                 loginResponse.setName(employeeDetails.getName());
+                userLogin.setLastLogin(new Date());
+                mongoTemplate.save(userLogin,ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
                 return loginResponse;
             }
             else{
@@ -96,4 +100,58 @@ public class LoginRepository {
     }
 
 
+    public String updateLoginCredentials(EmployeeLogin employeeLogin){
+        Query query = new Query();
+        if(StringUtils.isEmpty(employeeLogin.getId())){
+            // create and throw exception that there was no employee with id found.
+            ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "UpdateEmployeeLoginIdNotFound", "Mandatory id filed "
+              + "missing for the update employee login" );
+        }
+        if(!isUniqueLoginName(employeeLogin.getLoginName(),employeeLogin.getId())){
+            ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "LoginNameAlreadyTaken",
+              "Login name already taken by a employee, please find an another login name");
+        }
+        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeLogin.getId()));
+        Employee employeeSearched = mongoTemplate.findOne(query, Employee.class);
+        if(employeeSearched!=null){
+            BeanUtils.copyProperties(employeeLogin,employeeSearched);
+            mongoTemplate.save(employeeSearched);
+        }
+        else{
+            // create and throw exception that there was no emplyee with id found.
+            ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "EmployeeLoginNotFound", "employee with id "
+              + employeeLogin.getId()
+              + " was not found");
+        }
+        return employeeSearched.getId();
+    }
+
+    public EmployeeLogin getLoginCredentials(String employeeId){
+        if(StringUtils.isEmpty(employeeId)){
+            // create and throw exception that there was no employee with id found.
+            ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "getEmployeeLoginNotFound", "Mandatory id field "
+              + "missing for the get employee login" );
+        }
+        Query query = new Query();
+        query.addCriteria(Criteria.where("employeeId").is(employeeId));
+        EmployeeLogin employeeLogin = mongoTemplate.findOne(query, EmployeeLogin.class, ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
+        return employeeLogin;
+
+    }
+
+    private boolean isUniqueLoginName(String loginName,String id){
+
+        List<Employee> employees = mongoTemplate
+          .find(new Query().addCriteria(Criteria.where("loginName").is(loginName).
+              andOperator(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).ne(id))), Employee.class,
+            ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
+        if (CollectionUtils.isEmpty(employees)) {
+            return true;
+        }
+        else{
+            log.error("Login name already taken by a employee, please find some other login name");
+        }
+
+        return false;
+    }
 }

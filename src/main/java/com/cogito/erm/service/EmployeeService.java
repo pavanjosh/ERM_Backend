@@ -18,9 +18,6 @@ public class EmployeeService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    public List<String> getRolesForEmployee(LoginResponse userLogin){
-        return employeeRepository.getRoles(userLogin);
-    }
 
     public List<Employee> getEmployees(){
         List<Employee> employees = employeeRepository.getEmployees();

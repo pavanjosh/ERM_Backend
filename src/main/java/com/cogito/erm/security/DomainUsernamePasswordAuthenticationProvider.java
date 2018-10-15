@@ -3,6 +3,7 @@ package com.cogito.erm.security;
 
 import com.cogito.erm.model.authentication.AuthenticationWithToken;
 import com.cogito.erm.model.authentication.LoginResponse;
+import com.cogito.erm.service.EmployeeRolesAndRosterService;
 import com.cogito.erm.service.EmployeeService;
 import com.cogito.erm.service.LoginService;
 import com.cogito.erm.service.TokenService;
@@ -33,6 +34,10 @@ public class DomainUsernamePasswordAuthenticationProvider implements Authenticat
     @Autowired
     private EmployeeService employeeService;
 
+    @Autowired
+    private EmployeeRolesAndRosterService employeeRolesAndRosterService;
+
+
     public DomainUsernamePasswordAuthenticationProvider(TokenService tokenService){
         this.tokenService = tokenService;
     }
@@ -51,7 +56,7 @@ public class DomainUsernamePasswordAuthenticationProvider implements Authenticat
                 String newToken = tokenService.generateNewToken(userLogin);
                 log.debug("New token generated for user {} ,{}",username,newToken);
                 authenticationWithToken.setAuthenticated(true);
-                authenticationWithToken.setRoles(employeeService.getRolesForEmployee(userLogin));
+                authenticationWithToken.setRoles(employeeRolesAndRosterService.getRolesForEmployee(userLogin));
                 log.debug("Roles that are present for user {} ,{}",username,authenticationWithToken.getRoles());
                 authenticationWithToken.setToken(newToken);
 

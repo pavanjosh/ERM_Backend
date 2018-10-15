@@ -18,7 +18,16 @@ public class EmployeeRolesAndRoster {
     private List<String> role = new ArrayList<>();
     private String employeeId;
     private String name;
+    private String loginName;
     private String location;
+
+    public String getLoginName() {
+        return loginName;
+    }
+
+    public void setLoginName(String loginName) {
+        this.loginName = loginName;
+    }
 
     public Date getRosterStartDate() {
         return rosterStartDate;

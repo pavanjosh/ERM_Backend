@@ -1,8 +1,6 @@
 package com.cogito.erm.repository;
 
 import com.cogito.erm.dao.user.Employee;
-import com.cogito.erm.dao.user.EmployeeRolesAndRoster;
-import com.cogito.erm.model.authentication.LoginResponse;
 import com.cogito.erm.util.ERMUtil;
 import com.mongodb.client.result.DeleteResult;
 import org.slf4j.Logger;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.time.Instant;
 import java.util.List;
 
 @Repository
@@ -29,18 +26,6 @@ public class EmployeeRepository {
 
     private static final Logger log = LoggerFactory.getLogger(EmployeeRepository.class);
 
-    public List<String> getRoles(LoginResponse userLogin){
-        Query query = new Query();
-        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(userLogin.getEmployeeId())
-                .andOperator(Criteria.where(ERMUtil.EMPLOYEE_NAME_FILED).is(userLogin.getLoginName())
-                .andOperator(Criteria.where(ERMUtil.EMPLOYEE_ROSTER_STARTDATE_FILED).gte(Instant.now()))));
-
-        EmployeeRolesAndRoster userRoles = mongoTemplate.findOne(query, EmployeeRolesAndRoster.class);
-        if(userRoles!=null){
-            return userRoles.getRole();
-        }
-        return null;
-    }
 
     public List<Employee> getEmployees(){
         Query query = new Query();
