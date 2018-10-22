@@ -47,7 +47,8 @@ public class EmployeeRepository {
           ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "UpdateEmployeeIdNotFound", "Mandatory id filed "
             + "missing for the update employee" );
         }
-        if(!isUniqueLoginName(employee.getLoginName(),employee.getId())){
+        if(!StringUtils.isEmpty(employee.getLoginName())
+          &&!isUniqueLoginName(employee.getLoginName(),employee.getId())){
             ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "LoginNameAlreadyTaken",
               "Login name already taken by a employee, please find an another login name");
         }

@@ -4,6 +4,7 @@ import com.cogito.erm.dao.login.EmployeeLogin;
 import com.cogito.erm.dao.user.Employee;
 import com.cogito.erm.model.authentication.LoginResponse;
 import com.cogito.erm.util.ERMUtil;
+import com.mongodb.client.result.DeleteResult;
 import org.jasypt.util.text.StrongTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,7 +169,7 @@ public class LoginRepository {
 
     public String deleteLoginCredentials(String id){
         Query query = new Query();
-        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).is(id));
+        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(id));
         // first find the employee associated with this id
         // delete the login name for that employee and then delete the login credentials
         EmployeeLogin employeeLogin = mongoTemplate.findOne(query,EmployeeLogin.class,ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
@@ -176,7 +177,7 @@ public class LoginRepository {
             String employeeId = employeeLogin.getEmployeeId();
             if(!StringUtils.isEmpty(employeeId)){
                 Query employeeQuery = new Query();
-                employeeQuery.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).is(employeeId));
+                employeeQuery.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeId));
                 Employee employee =mongoTemplate.findOne(employeeQuery,Employee.class,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
                 if(employee!=null){
                     employee.setLoginName("");

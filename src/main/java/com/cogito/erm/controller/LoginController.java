@@ -37,13 +37,7 @@ public class LoginController {
   public ResponseEntity<EmployeeLogin> getNewLoginCredentials(@RequestHeader(name = "X-Employee-Id",required = true)
                                                   String employeeId,@PathVariable(name = "loginName") String loginName ){
     return new ResponseEntity<EmployeeLogin>(loginService.getLoginCredentials(employeeId,loginName), HttpStatus.OK);
-  @RequestMapping(value = "/login/delete/{id}",method = RequestMethod.DELETE)
-  public ResponseEntity<String> deleteLoginCredentials(@PathVariable(name = "id") String id){
-    return new ResponseEntity<String>(loginService.deleteLoginCredentials(id), HttpStatus.OK);
+
   }
 
-  @RequestMapping(value = "/login/details/{id}",method = RequestMethod.GET)
-  public ResponseEntity<EmployeeLogin> getNewLoginCredentials(@RequestHeader(name = "X-Employee-Id",required = true) String employeeId){
-    return new ResponseEntity<EmployeeLogin>(loginService.getLoginCredentials(employeeId), HttpStatus.OK);
-  }
 }

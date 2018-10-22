@@ -1,6 +1,5 @@
 package com.cogito.erm.repository;
 
-import com.cogito.erm.controller.RolesAndRosterController;
 import com.cogito.erm.dao.user.Employee;
 import com.cogito.erm.dao.user.EmployeeRolesAndRoster;
 import com.cogito.erm.model.authentication.LoginResponse;
@@ -95,7 +94,7 @@ public class EmployeeRolesAndRosterRepository {
 
   public String deleteRosterDetails(String id){
     DeleteResult deleteResult =
-            mongoTemplate.remove(new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_COLLECTION_ID_FILED).is(id)),
+            mongoTemplate.remove(new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(id)),
                     EmployeeRolesAndRoster.class,ERMUtil.EMPLOYEE_ROLESANDROSTER_COLLECTION);
     if(!deleteResult.wasAcknowledged()){
       log.error("Could not delete rosterObject with id {}",id);
