@@ -30,8 +30,8 @@ public class LoginService {
         return loginRepository.updateLoginCredentials(employeeLogin);
     }
 
-    public EmployeeLogin getLoginCredentials(String employeeId){
-        logger.debug("Get Employee Login credentials ");
-        return loginRepository.getLoginCredentials(employeeId);
+    public EmployeeLogin getLoginCredentials(String employeeId,String loginName){
+        logger.debug("Get Employee Login credentials for {},{}",employeeId,loginName);
+        return loginRepository.getLoginCredentials(employeeId,loginName);
     }
 }

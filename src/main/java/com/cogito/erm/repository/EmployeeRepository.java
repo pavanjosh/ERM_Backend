@@ -30,11 +30,17 @@ public class EmployeeRepository {
     public List<Employee> getEmployees(){
         Query query = new Query();
         query.with(new Sort(Sort.Direction.ASC, ERMUtil.EMPLOYEE_NAME_FILED));
+        query.addCriteria(Criteria.where("active").is(true));
         List<Employee> employees = mongoTemplate.find(query,Employee.class);
         return employees;
     }
-
-    public String updateEmployee(Employee employee){
+    public List<Employee> getEmployeesWithLoginNames(){
+        Query query = new Query();
+        query.addCriteria(Criteria.where("active").is(true).andOperator(Criteria.where("loginName").exists(true)));
+        List<Employee> employees = mongoTemplate.find(query,Employee.class,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
+        return employees;
+    }
+    public Employee updateEmployee(Employee employee){
         Query query = new Query();
         if(StringUtils.isEmpty(employee.getId())){
           // create and throw exception that there was no employee with id found.
@@ -45,8 +51,8 @@ public class EmployeeRepository {
             ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "LoginNameAlreadyTaken",
               "Login name already taken by a employee, please find an another login name");
         }
-        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employee.getId()));
-        Employee employeeSearched = mongoTemplate.findOne(query, Employee.class);
+        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employee.getId()).andOperator(Criteria.where("active").is(true)));
+        Employee employeeSearched = mongoTemplate.findOne(query, Employee.class,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
         if(employeeSearched!=null){
             BeanUtils.copyProperties(employee,employeeSearched);
             mongoTemplate.save(employeeSearched);
@@ -56,17 +62,17 @@ public class EmployeeRepository {
             ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "EmployeeNotFound", "employee with id " + employee.getId()
               + " was not found");
         }
-        return employeeSearched.getId();
+        return employeeSearched;
     }
 
-    public String createEmployee(Employee employee){
+    public Employee createEmployee(Employee employee){
         if(StringUtils.isEmpty(employee.getLoginName())
             || isUniqueLoginName(employee.getLoginName(),null))
         {
-            mongoTemplate.save(employee);
+            mongoTemplate.save(employee,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
             log.debug("Employee Saved successfully");
             String id = employee.getId();
-            return id;
+            return employee;
         }
         else {
             ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "LoginNameAlreadyTaken",
@@ -79,14 +85,14 @@ public class EmployeeRepository {
     public boolean deleteEmployees(String id){
         Query query = new Query();
         query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(id));
-        DeleteResult remove = mongoTemplate.remove(query, Employee.class);
+        DeleteResult remove = mongoTemplate.remove(query, Employee.class,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
         return remove.wasAcknowledged();
     }
 
     public List<Employee> searchEmployee(String searchTerm,String searchValue){
         Query query = new Query();
         Criteria regex = Criteria.where(searchTerm).regex(searchValue,"i");
-        List<Employee> employees = mongoTemplate.find(query.addCriteria(regex), Employee.class);
+        List<Employee> employees = mongoTemplate.find(query.addCriteria(regex), Employee.class,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
         return employees;
     }
 
@@ -105,4 +111,6 @@ public class EmployeeRepository {
 
         return false;
     }
+
+
 }

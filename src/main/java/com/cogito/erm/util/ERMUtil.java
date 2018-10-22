@@ -13,7 +13,7 @@ public class ERMUtil {
     public static final String AUTHENTICATE_URL = "/erm/api/login";
 
     public static final List<String> NON_AUTHENTICATION_APPLICATION_PATH_LIST=
-      new ArrayList<String>(Arrays.asList("erm/api/home","/user/forgot","/user/reset" ));
+      new ArrayList<String>(Arrays.asList("erm/api/home","erm/api/registerEmployee","erm/api/createAdminLogin","/user/forgot","/user/reset" ));
     public static final List<String> NON_AUTHENTICATION_SPRING_ACTUATOR_PATH_LIST=
       new ArrayList<String>(Arrays.asList("\"/autoconfig\"","/beans","/configprops","/env","/mappings","/metrics","/shutdown" ));
 
@@ -32,6 +32,7 @@ public class ERMUtil {
     public static final String ERR_INVALID_JSON_FORMAT = "Exception parsing JSON format";
     public static final String SYSTEM_NAME="ERM_COGITO_EXPERIENCE";
     public static final String EMPLOYEE_ID_FILED = "id";
+    public static final String EMPLOYEE_EMPLOYEEID_FILED = "employeeId";
     public static final String EMPLOYEE_NAME_FILED = "name";
     public static final String EMPLOYEE_ACTIVE_FILED = "active";
     public static final String EMPLOYEE_ROSTER_STARTDATE_FILED = "rosterStartDate";

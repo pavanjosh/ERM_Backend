@@ -1,6 +1,7 @@
 package com.cogito.erm.filter;
 
 import com.cogito.erm.exception.CommonExceptionModel;
+import com.cogito.erm.exception.ServiceException;
 import com.cogito.erm.model.authentication.AuthenticationWithToken;
 import com.cogito.erm.security.TokenResponse;
 import com.cogito.erm.util.ERMUtil;
@@ -108,7 +109,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 LOG.error("Authentication exception {}", authenticationException);
                 sendError(httpResponse, HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.name(),
                   authenticationException.getMessage());
-            } catch (Exception ex) {
+            } catch (ServiceException se) {
+                SecurityContextHolder.clearContext();
+                LOG.error("Authentication exception {}", se);
+                sendError(httpResponse, se.getHttpStatus(),se.getErrorCode(),
+                  se.getErrorMessage());
+            }catch (Exception ex) {
                 SecurityContextHolder.clearContext();
                 LOG.error("Authentication exception {}", ex);
                 sendError(httpResponse, HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.name(),

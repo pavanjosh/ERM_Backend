@@ -1,7 +1,6 @@
 package com.cogito.erm.service;
 
 import com.cogito.erm.dao.user.Employee;
-import com.cogito.erm.model.authentication.LoginResponse;
 import com.cogito.erm.repository.EmployeeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,16 +20,21 @@ public class EmployeeService {
 
     public List<Employee> getEmployees(){
         List<Employee> employees = employeeRepository.getEmployees();
+        logger.info("List of employees are {}",employees);
         return employees;
     }
 
-    public String updateEmployee(Employee updateEmployee){
-        return employeeRepository.updateEmployee( updateEmployee);
+    public Employee updateEmployee(Employee updateEmployee){
+        Employee updateEmployeeResult = employeeRepository.updateEmployee(updateEmployee);
+        logger.info("update Employee result {}",updateEmployeeResult);
+        return updateEmployeeResult;
 
     }
 
-    public String createEmployee(Employee employee){
-        return employeeRepository.createEmployee(employee);
+    public Employee createEmployee(Employee employee){
+        Employee createEmployeeResult = employeeRepository.createEmployee(employee);
+        logger.info("Create Employee result {}",createEmployeeResult);
+        return createEmployeeResult;
     }
 
     public boolean deleteEmployee(String id){
@@ -40,6 +44,11 @@ public class EmployeeService {
 
     public List<Employee> searchEmployee(String searchTerm,String searchValue){
         List<Employee> employees = employeeRepository.searchEmployee(searchTerm, searchValue);
+        return employees;
+    }
+
+    public List<Employee> getEmployeesWithLoginNames(){
+        List<Employee> employees = employeeRepository.getEmployeesWithLoginNames();
         return employees;
     }
 }

@@ -4,10 +4,12 @@ import com.cogito.erm.dao.login.EmployeeLogin;
 import com.cogito.erm.dao.user.Employee;
 import com.cogito.erm.model.authentication.LoginResponse;
 import com.cogito.erm.util.ERMUtil;
+import org.jasypt.util.text.StrongTextEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -25,10 +27,14 @@ public class LoginRepository {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Value("${erm.encryptor.password}")
+    private String encryptor;
+
     private static final Logger log = LoggerFactory.getLogger(LoginRepository.class);
 
     public LoginResponse checkCredentials(String userName,String password){
         Query query = new Query();
+        String encryptedPassword = getEncryptedPassword(password);
         query.addCriteria(Criteria.where("loginName").is(userName).andOperator(Criteria.where("password").is(password)));
         //query.fields().include("userName").include("employeeId");
         EmployeeLogin userLogin = mongoTemplate.findOne(query,EmployeeLogin.class);
@@ -75,10 +81,15 @@ public class LoginRepository {
                     EmployeeLogin.class, ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
                 if(CollectionUtils.isEmpty(loginNamesList)) {
                     employeeLogin.setCreatedDate(new Date());
+                    log.info("Encrypting password in Progress...");
+                    String encryptedPassword = getEncryptedPassword(employeeLogin.getPassword());
+                    employeeLogin.setPassword(encryptedPassword);
+                    log.info("Encrypting password successful");
                     mongoTemplate.save(employeeLogin);
                     return employeeLogin.getEmployeeId();
                 }
                 else{
+                    log.error("Login name already taken by a employee, please find an another login name");
                     ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "LoginNameAlreadyTaken",
                       "Login name already taken by a employee, please find an another login name");
                 }
@@ -104,39 +115,55 @@ public class LoginRepository {
         Query query = new Query();
         if(StringUtils.isEmpty(employeeLogin.getId())){
             // create and throw exception that there was no employee with id found.
-            ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "UpdateEmployeeLoginIdNotFound", "Mandatory id filed "
+            log.error("Mandatory id filed missing for the update employee login {} ",employeeLogin);
+            ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "UpdateEmployeeLoginCredentialsIdNotFound", "Mandatory id filed "
               + "missing for the update employee login" );
         }
         if(!isUniqueLoginName(employeeLogin.getLoginName(),employeeLogin.getId())){
+            log.error("Login name already taken by a employee, please find an another login name {} ",employeeLogin);
             ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "LoginNameAlreadyTaken",
               "Login name already taken by a employee, please find an another login name");
         }
-        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeLogin.getId()));
-        Employee employeeSearched = mongoTemplate.findOne(query, Employee.class);
+        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_EMPLOYEEID_FILED).is(employeeLogin.getEmployeeId()).andOperator(Criteria.where("active").is(true)));
+        Employee employeeSearched = mongoTemplate.findOne(query, Employee.class,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
         if(employeeSearched!=null){
-            BeanUtils.copyProperties(employeeLogin,employeeSearched);
-            mongoTemplate.save(employeeSearched);
+            String encryptedPassword = getEncryptedPassword(employeeLogin.getPassword());
+            EmployeeLogin updateEmployeeLogin = mongoTemplate
+              .findOne(new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeLogin.getId()))
+                , EmployeeLogin.class, ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
+            BeanUtils.copyProperties(employeeLogin,updateEmployeeLogin);
+            updateEmployeeLogin.setPassword(encryptedPassword);
+            mongoTemplate.save(updateEmployeeLogin,ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
         }
         else{
-            // create and throw exception that there was no emplyee with id found.
+            // create and throw exception that there was no employee with id found.
+            log.error("Employee with given employeeId {} was not found or is NOT ACTIVE {}",employeeLogin.getEmployeeId(),employeeLogin);
             ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "EmployeeLoginNotFound", "employee with id "
-              + employeeLogin.getId()
-              + " was not found");
+              + employeeLogin.getEmployeeId() + " with login name " + employeeLogin.getLoginName()
+              + " was not found in the employee details data OR is NOT active");
         }
         return employeeSearched.getId();
     }
 
-    public EmployeeLogin getLoginCredentials(String employeeId){
+    public EmployeeLogin getLoginCredentials(String employeeId,String loginName){
         if(StringUtils.isEmpty(employeeId)){
             // create and throw exception that there was no employee with id found.
-            ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "getEmployeeLoginNotFound", "Mandatory id field "
-              + "missing for the get employee login" );
+            ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "EmployeeLoginNotFound", "Mandatory id field "
+              + "for the get employee login" );
+        }
+        if(StringUtils.isEmpty(loginName)){
+            // create and throw exception that there was no employee with id found.
+            ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "EmployeeLoginNameFound", "Mandatory loginName field "
+              + " the get employee login" );
         }
         Query query = new Query();
-        query.addCriteria(Criteria.where("employeeId").is(employeeId));
+        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_EMPLOYEEID_FILED).is(employeeId).andOperator(Criteria.where("loginName").is(loginName)));
         EmployeeLogin employeeLogin = mongoTemplate.findOne(query, EmployeeLogin.class, ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
+        log.info("Password decryption in progress...");
+        String decryptedPassword = decryptPassword(employeeLogin.getPassword());
+        employeeLogin.setPassword(decryptedPassword);
+        log.info("Password decryption successful");
         return employeeLogin;
-
     }
 
     private boolean isUniqueLoginName(String loginName,String id){
@@ -146,6 +173,7 @@ public class LoginRepository {
               andOperator(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).ne(id))), Employee.class,
             ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
         if (CollectionUtils.isEmpty(employees)) {
+            log.debug("Login name is unique");
             return true;
         }
         else{
@@ -153,5 +181,19 @@ public class LoginRepository {
         }
 
         return false;
+    }
+
+    private String getEncryptedPassword(String password){
+        StrongTextEncryptor textEncryptor = new StrongTextEncryptor();
+        textEncryptor.setPassword(encryptor);
+        String encrypt = textEncryptor.encrypt(password);
+        return encrypt;
+    }
+
+    private String decryptPassword(String password) {
+        StrongTextEncryptor textEncryptor = new StrongTextEncryptor();
+        textEncryptor.setPassword(encryptor);
+        String decrypt = textEncryptor.decrypt(password);
+        return decrypt;
     }
 }
