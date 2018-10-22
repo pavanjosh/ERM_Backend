@@ -34,4 +34,9 @@ public class LoginService {
         logger.debug("Get Employee Login credentials for {},{}",employeeId,loginName);
         return loginRepository.getLoginCredentials(employeeId,loginName);
     }
+
+    public String deleteLoginCredentials(String id){
+        logger.debug("delete Employee Login credentials {} ",id);
+        return loginRepository.deleteLoginCredentials(id);
+    }
 }
