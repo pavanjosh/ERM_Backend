@@ -19,8 +19,8 @@ public class LoginController {
    * @return
    */
   @RequestMapping(value = "/login/register",method = RequestMethod.POST)
-  public ResponseEntity<String> createNewLoginCredentials(@RequestBody EmployeeLogin employeeLogin){
-    return new ResponseEntity<String>(loginService.createLoginCredentials(employeeLogin), HttpStatus.OK);
+  public ResponseEntity<EmployeeLogin> createNewLoginCredentials(@RequestBody EmployeeLogin employeeLogin){
+    return new ResponseEntity<EmployeeLogin>(loginService.createLoginCredentials(employeeLogin), HttpStatus.OK);
   }
 
   /**
@@ -29,8 +29,8 @@ public class LoginController {
    * @return
    */
   @RequestMapping(value = "/login/register/admin",method = RequestMethod.POST)
-  public ResponseEntity<String> createAdminLoginCredentials(@RequestBody EmployeeLogin employeeLogin){
-    return new ResponseEntity<String>(loginService.createLoginCredentials(employeeLogin), HttpStatus.OK);
+  public ResponseEntity<EmployeeLogin> createAdminLoginCredentials(@RequestBody EmployeeLogin employeeLogin){
+    return new ResponseEntity<EmployeeLogin>(loginService.createLoginCredentials(employeeLogin), HttpStatus.OK);
   }
 
   /**

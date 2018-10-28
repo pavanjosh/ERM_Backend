@@ -36,7 +36,7 @@ public class EmployeeRolesAndRosterService {
     return rosters;
   }
 
-  public String deleteRosterDetails(String id){
+  public Boolean deleteRosterDetails(String id){
     return employeeRolesAndRosterRepository.deleteRosterDetails(id);
   }
 

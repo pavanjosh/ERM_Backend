@@ -2,6 +2,7 @@ package com.cogito.erm.controller;
 
 import com.cogito.erm.dao.user.EmployeeRolesAndRoster;
 import com.cogito.erm.service.EmployeeRolesAndRosterService;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,13 +27,13 @@ public class RolesAndRosterController {
   }
 
 
-  @RequestMapping(value = "/rolesandroster",method = RequestMethod.GET)
+  @RequestMapping(value = "/rolesandrosters",method = RequestMethod.GET)
   public ResponseEntity<List<EmployeeRolesAndRoster>> getAllRolesAndRoster(){
     return new ResponseEntity<List<EmployeeRolesAndRoster>>(employeeRolesAndRosterService.getAllRosterDetails(), HttpStatus.OK);
   }
 
   @RequestMapping(value = "/rolesandroster/{id}",method = RequestMethod.DELETE)
-  public ResponseEntity<String> deleteRolesAndRoster(@PathVariable(name = "id") String id){
-    return new ResponseEntity<String>(employeeRolesAndRosterService.deleteRosterDetails(id), HttpStatus.OK);
+  public ResponseEntity<Boolean> deleteRolesAndRoster(@PathVariable(name = "id") String id){
+    return new ResponseEntity<Boolean>(employeeRolesAndRosterService.deleteRosterDetails(id), HttpStatus.OK);
   }
 }

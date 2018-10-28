@@ -5,6 +5,7 @@ import com.cogito.erm.dao.user.EmployeeRolesAndRoster;
 import com.cogito.erm.model.authentication.LoginResponse;
 import com.cogito.erm.util.ERMUtil;
 import com.mongodb.client.result.DeleteResult;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +47,7 @@ public class EmployeeRolesAndRosterRepository {
         Employee employee = mongoTemplate.findOne(
                 new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeId)
                         .andOperator(Criteria.where(ERMUtil.EMPLOYEE_ACTIVE_FILED).is(true)
-                        .andOperator(Criteria.where("loginName").is(employeeRolesAndRoster.getLoginName())
-                        .andOperator(Criteria.where("name").is(employeeRolesAndRoster.getName())))))
+                        .andOperator(Criteria.where("name").is(employeeRolesAndRoster.getName()))))
 
                 ,Employee.class,
                 ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
@@ -96,8 +96,7 @@ public class EmployeeRolesAndRosterRepository {
         Employee employee = mongoTemplate.findOne(
                 new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeId)
                         .andOperator(Criteria.where(ERMUtil.EMPLOYEE_ACTIVE_FILED).is(true)
-                                .andOperator(Criteria.where("loginName").is(employeeRolesAndRoster.getLoginName())
-                                        .andOperator(Criteria.where("name").is(employeeRolesAndRoster.getName())))))
+                                        .andOperator(Criteria.where("name").is(employeeRolesAndRoster.getName()))))
 
                 ,Employee.class,
                 ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
@@ -143,9 +142,8 @@ public class EmployeeRolesAndRosterRepository {
   try {
 
     query.addCriteria(Criteria.where("employeeId").is(userLogin.getEmployeeId())
-      .andOperator(Criteria.where("loginName").is(userLogin.getLoginName())
         .andOperator(Criteria.where(ERMUtil.EMPLOYEE_ROSTER_STARTDATE_FILED).lte(new Date())
-          .andOperator(Criteria.where(ERMUtil.EMPLOYEE_ROSTER_ENDDATE_FILED).gte(new Date())))));
+          .andOperator(Criteria.where(ERMUtil.EMPLOYEE_ROSTER_ENDDATE_FILED).gte(new Date()))));
     EmployeeRolesAndRoster userRoles = mongoTemplate.findOne(query, EmployeeRolesAndRoster.class);
     if(userRoles!=null){
       return userRoles.getRoles();
@@ -166,7 +164,7 @@ public class EmployeeRolesAndRosterRepository {
     return rosters;
   }
 
-  public String deleteRosterDetails(String id){
+  public Boolean deleteRosterDetails(String id){
     DeleteResult deleteResult =
             mongoTemplate.remove(new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(id)),
                     EmployeeRolesAndRoster.class,ERMUtil.EMPLOYEE_ROLESANDROSTER_COLLECTION);
@@ -176,13 +174,12 @@ public class EmployeeRolesAndRosterRepository {
               "Could not delete rosterObject with id "+ id);
     }
     log.info("delete of roster was successful {}", id);
-    return id;
+    return deleteResult.wasAcknowledged();
   }
 
   private boolean isValidEmployeeRolesAndRosterRequest(EmployeeRolesAndRoster employeeRolesAndRoster){
 
     if(employeeRolesAndRoster==null || StringUtils.isEmpty(employeeRolesAndRoster.getEmployeeId())
-            || StringUtils.isEmpty(employeeRolesAndRoster.getLoginName())
             || StringUtils.isEmpty(employeeRolesAndRoster.getName())
             || employeeRolesAndRoster.getRosterStartDate() == null){
       return false;

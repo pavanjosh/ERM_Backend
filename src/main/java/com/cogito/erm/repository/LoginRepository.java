@@ -66,7 +66,7 @@ public class LoginRepository {
         return null;
 
     }
-    public String createLoginCredentials(EmployeeLogin employeeLogin){
+    public EmployeeLogin createLoginCredentials(EmployeeLogin employeeLogin){
 
 
         // Basic validation to see if login name and password is not null.
@@ -83,20 +83,22 @@ public class LoginRepository {
         if(employeeLogin.getEmployeeId()!=null){
             String employeeId = employeeLogin.getEmployeeId();
             Query employeeQuery = new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeId)
-              .andOperator(Criteria.where(ERMUtil.EMPLOYEE_ACTIVE_FILED).is(true),Criteria.where("loginName").is(employeeLogin.getLoginName())));
+              .andOperator(Criteria.where(ERMUtil.EMPLOYEE_ACTIVE_FILED).is(true)));
             Employee employeeDetails = mongoTemplate.findOne(employeeQuery, Employee.class, ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
             if(employeeDetails!=null){
-                List<EmployeeLogin> loginNamesList = mongoTemplate
-                  .find(new Query().addCriteria(Criteria.where("loginName").is(employeeLogin.getLoginName())),
-                    EmployeeLogin.class, ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
-                if(CollectionUtils.isEmpty(loginNamesList)) {
+                if(isUniqueLoginName(employeeLogin.getLoginName(),employeeId)){
                     employeeLogin.setCreatedDate(new Date());
                     log.info("Encrypting password in Progress...");
                     //String encryptedPassword = getEncryptedPassword(employeeLogin.getPassword());
                     //employeeLogin.setPassword(encryptedPassword);
                     log.info("Encrypting password successful");
                     mongoTemplate.save(employeeLogin);
-                    return employeeLogin.getEmployeeId();
+                    // update employee details table as well for the login name
+                    employeeDetails.setLoginName(employeeLogin.getLoginName());
+                    mongoTemplate.save(employeeDetails,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
+                    employeeLogin.setPassword("");
+                    return employeeLogin;
+
                 }
                 else{
                     log.error("Login name already taken by a employee, please find an another login name");
@@ -129,21 +131,23 @@ public class LoginRepository {
             ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "UpdateEmployeeLoginCredentialsIdNotFound", "Mandatory id filed "
               + "missing for the update employee login" );
         }
-        if(!isUniqueLoginName(employeeLogin.getLoginName(),employeeLogin.getId())){
+        if(!isUniqueLoginName(employeeLogin.getLoginName(),employeeLogin.getEmployeeId())){
             log.error("Login name already taken by a employee, please find an another login name {} ",employeeLogin);
             ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "LoginNameAlreadyTaken",
               "Login name already taken by a employee, please find an another login name");
         }
-        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_EMPLOYEEID_FILED).is(employeeLogin.getEmployeeId()).andOperator(Criteria.where("active").is(true)));
+        query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeLogin.getEmployeeId()).andOperator(Criteria.where("active").is(true)));
         Employee employeeSearched = mongoTemplate.findOne(query, Employee.class,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
         if(employeeSearched!=null){
-            String encryptedPassword = getEncryptedPassword(employeeLogin.getPassword());
+            //String encryptedPassword = getEncryptedPassword(employeeLogin.getPassword());
             EmployeeLogin updateEmployeeLogin = mongoTemplate
               .findOne(new Query().addCriteria(Criteria.where(ERMUtil.EMPLOYEE_ID_FILED).is(employeeLogin.getId()))
                 , EmployeeLogin.class, ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
             BeanUtils.copyProperties(employeeLogin,updateEmployeeLogin);
-            updateEmployeeLogin.setPassword(encryptedPassword);
+            //updateEmployeeLogin.setPassword(encryptedPassword);
             mongoTemplate.save(updateEmployeeLogin,ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
+            employeeSearched.setLoginName(employeeLogin.getLoginName());
+            mongoTemplate.save(employeeSearched,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
         }
         else{
             // create and throw exception that there was no employee with id found.

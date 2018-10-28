@@ -20,7 +20,7 @@ public class LoginService {
         logger.debug("Check credentials method");
         return loginRepository.checkCredentials(userName, password);
     }
-    public String createLoginCredentials(EmployeeLogin employeeLogin){
+    public EmployeeLogin createLoginCredentials(EmployeeLogin employeeLogin){
         logger.debug("Creating new login credentials");
         return loginRepository.createLoginCredentials(employeeLogin);
     }
