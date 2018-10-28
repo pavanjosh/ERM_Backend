@@ -174,8 +174,8 @@ public class LoginRepository {
         query.addCriteria(Criteria.where(ERMUtil.EMPLOYEE_EMPLOYEEID_FILED).is(employeeId).andOperator(Criteria.where("loginName").is(loginName)));
         EmployeeLogin employeeLogin = mongoTemplate.findOne(query, EmployeeLogin.class, ERMUtil.EMPLOYEE_LOGIN_COLLECTION);
         log.info("Password decryption in progress...");
-        String decryptedPassword = decryptPassword(employeeLogin.getPassword());
-        employeeLogin.setPassword(decryptedPassword);
+        //String decryptedPassword = decryptPassword(employeeLogin.getPassword());
+        //employeeLogin.setPassword(decryptedPassword);
         log.info("Password decryption successful");
         return employeeLogin;
     }
