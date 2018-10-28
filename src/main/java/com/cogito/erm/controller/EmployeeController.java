@@ -22,7 +22,7 @@ public class EmployeeController {
    * Returns the list of ALL employees
    * @return
    */
-  @RequestMapping(value = "/registerEmployee",method = RequestMethod.POST)
+  @RequestMapping(value = "/registerAdmin",method = RequestMethod.POST)
   public ResponseEntity<Employee> registerEmployeeEmployees(@RequestBody Employee createEmployee){
     return new ResponseEntity<Employee>(employeeService.createEmployee(createEmployee), HttpStatus.OK);
   }
@@ -84,7 +84,7 @@ public class EmployeeController {
    * to create a roster for an employee
    * @return
    */
-  @RequestMapping(value = "/employees/rosters/",method = RequestMethod.GET)
+  @RequestMapping(value = "/employees/forroster",method = RequestMethod.GET)
   public ResponseEntity<List<Employee>> getEmployeesWithLoginNamesEmployee(){
     return new ResponseEntity<List<Employee>>(employeeService.getEmployeesWithLoginNames(), HttpStatus.OK);
   }

@@ -24,6 +24,16 @@ public class LoginController {
   }
 
   /**
+   * Creates a new Admin login credentials
+   * @param employeeLogin
+   * @return
+   */
+  @RequestMapping(value = "/login/register/admin",method = RequestMethod.POST)
+  public ResponseEntity<String> createAdminLoginCredentials(@RequestBody EmployeeLogin employeeLogin){
+    return new ResponseEntity<String>(loginService.createLoginCredentials(employeeLogin), HttpStatus.OK);
+  }
+
+  /**
    * updates login credentials
    * @param employeeLogin
    * @return

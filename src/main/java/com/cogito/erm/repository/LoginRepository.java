@@ -35,7 +35,7 @@ public class LoginRepository {
 
     public LoginResponse checkCredentials(String userName,String password){
         Query query = new Query();
-        String encryptedPassword = getEncryptedPassword(password);
+        //String encryptedPassword = getEncryptedPassword(password);
         query.addCriteria(Criteria.where("loginName").is(userName).andOperator(Criteria.where("password").is(password)));
         //query.fields().include("userName").include("employeeId");
         EmployeeLogin userLogin = mongoTemplate.findOne(query,EmployeeLogin.class);
@@ -68,6 +68,15 @@ public class LoginRepository {
     }
     public String createLoginCredentials(EmployeeLogin employeeLogin){
 
+
+        // Basic validation to see if login name and password is not null.
+        // If it is null then return error
+        if(employeeLogin==null || StringUtils.isEmpty(employeeLogin.getLoginName())
+                || StringUtils.isEmpty(employeeLogin.getPassword())){
+            log.error("Login name or password cannot be null");
+            ERMUtil.createAndThrowException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "LoginNameOrPasswordEmpty",
+                    "Login name or password cannot be null");
+        }
         // check if employee id is supplied, if yes check if the user exists
         // encrypt the password and save in table
         // update created date
@@ -83,8 +92,8 @@ public class LoginRepository {
                 if(CollectionUtils.isEmpty(loginNamesList)) {
                     employeeLogin.setCreatedDate(new Date());
                     log.info("Encrypting password in Progress...");
-                    String encryptedPassword = getEncryptedPassword(employeeLogin.getPassword());
-                    employeeLogin.setPassword(encryptedPassword);
+                    //String encryptedPassword = getEncryptedPassword(employeeLogin.getPassword());
+                    //employeeLogin.setPassword(encryptedPassword);
                     log.info("Encrypting password successful");
                     mongoTemplate.save(employeeLogin);
                     return employeeLogin.getEmployeeId();

@@ -59,7 +59,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             String requestUri = urlPathHelper.getRequestUri(httpRequest);
 
             try {
-                if (requestForUnauthorisedPath(resourcePath)) {
+                if (requestForUnauthorisedPath(requestUri)) {
                     LOG.debug("This URL requires no Authentication {}",resourcePath);
                 }
                 else {

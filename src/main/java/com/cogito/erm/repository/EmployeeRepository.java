@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -36,9 +37,17 @@ public class EmployeeRepository {
     }
     public List<Employee> getEmployeesWithLoginNames(){
         Query query = new Query();
-        query.addCriteria(Criteria.where("active").is(true).andOperator(Criteria.where("loginName").exists(true)));
+        query.addCriteria(Criteria.where("active").is(true).andOperator(Criteria.where("loginName").ne(null)));
         List<Employee> employees = mongoTemplate.find(query,Employee.class,ERMUtil.EMPLOYEE_DETAILS_COLLECTION);
-        return employees;
+        List<Employee> returnList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(employees)) {
+            for (Employee employee : employees) {
+                if (employee != null && !StringUtils.isEmpty(employee.getLoginName())) {
+                    returnList.add(employee);
+                }
+            }
+        }
+        return returnList;
     }
     public Employee updateEmployee(Employee employee){
         Query query = new Query();

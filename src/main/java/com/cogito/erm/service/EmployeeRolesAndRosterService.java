@@ -20,6 +20,12 @@ public class EmployeeRolesAndRosterService {
     return id;
   }
 
+  public String updateRolesAndRoster(EmployeeRolesAndRoster employeeRolesAndRoster){
+    String id = employeeRolesAndRosterRepository.updateRolesAndRoster(employeeRolesAndRoster);
+    return id;
+  }
+
+
   public List<String> getRolesForEmployee(LoginResponse userLogin){
     return employeeRolesAndRosterRepository.getRoles(userLogin);
   }

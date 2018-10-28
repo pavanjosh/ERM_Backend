@@ -20,6 +20,12 @@ public class RolesAndRosterController {
     return new ResponseEntity<String>(employeeRolesAndRosterService.createRolesAndRoster(employeeRolesAndRoster), HttpStatus.OK);
   }
 
+  @RequestMapping(value = "/rolesandroster",method = RequestMethod.PUT)
+  public ResponseEntity<String> updateRolesAndRoster(@RequestBody EmployeeRolesAndRoster employeeRolesAndRoster){
+    return new ResponseEntity<String>(employeeRolesAndRosterService.updateRolesAndRoster(employeeRolesAndRoster), HttpStatus.OK);
+  }
+
+
   @RequestMapping(value = "/rolesandroster",method = RequestMethod.GET)
   public ResponseEntity<List<EmployeeRolesAndRoster>> getAllRolesAndRoster(){
     return new ResponseEntity<List<EmployeeRolesAndRoster>>(employeeRolesAndRosterService.getAllRosterDetails(), HttpStatus.OK);

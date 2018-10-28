@@ -1,5 +1,6 @@
 package com.cogito.erm.dao.user;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -13,9 +14,11 @@ public class EmployeeRolesAndRoster {
     @Id
     private String id;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date rosterStartDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date rosterEndDate;
-    private List<String> role = new ArrayList<>();
+    private List<String> roles = new ArrayList<>();
     private String employeeId;
     private String name;
     private String loginName;
@@ -45,12 +48,12 @@ public class EmployeeRolesAndRoster {
         this.rosterEndDate = rosterEndDate;
     }
 
-    public List<String> getRole() {
-        return role;
+    public List<String> getRoles() {
+        return roles;
     }
 
-    public void setRole(List<String> role) {
-        this.role = role;
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 
     public String getEmployeeId() {
