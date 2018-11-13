@@ -1,5 +1,6 @@
 package com.cogito.erm.dao.user;
 
+import com.cogito.erm.dao.Vessels;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -22,7 +23,15 @@ public class EmployeeRolesAndRoster {
     private String employeeId;
     private String name;
     private String location;
+    private Vessels vessel;
 
+    public Vessels getVessel() {
+        return vessel;
+    }
+
+    public void setVessel(Vessels vessel) {
+        this.vessel = vessel;
+    }
 
     public Date getRosterStartDate() {
         return rosterStartDate;
@@ -79,4 +88,6 @@ public class EmployeeRolesAndRoster {
     public void setLocation(String location) {
         this.location = location;
     }
+
+
 }
